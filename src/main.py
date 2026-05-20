@@ -39,12 +39,12 @@ FFN_HIDDEN = 680 # FFN = Feed Forward Network
 DROPOUT = 0.2
 MAX_SEQ_LEN = 256 # This is the maximum sequence length for the model
 
-# loading data
+# LOADING DATA
 with open("input.txt", "r", encoding = "utf-8") as f:
     text = f.read()
     print(f"Loaded {len(text)} characters") # returns the number of items in the container
 
-# And then we tokenize it
+# TOKENZATION
 chars = sorted(list(set(text)))
 char_to_index = {c: i for i, c in enumerate(chars)}
 index_to_char = {i: c for i, c in enumerate(chars)}
@@ -60,3 +60,5 @@ split = int(0.9 * len(data))
 
 train_data = data[:split]
 val_data = data[split:]
+
+# BATCHING

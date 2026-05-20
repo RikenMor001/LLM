@@ -42,7 +42,7 @@ MAX_SEQ_LEN = 256 # This is the maximum sequence length for the model
 # LOADING DATA
 with open("input.txt", "r", encoding = "utf-8") as f:
     text = f.read()
-    print(f"Loaded {len(text)} characters") # returns the number of items in the container
+    print(f"Loaded {len(text)} characters in the LLM training data") # returns the number of items in the container
 
 # TOKENZATION
 chars = sorted(list(set(text)))
@@ -62,3 +62,19 @@ train_data = data[:split]
 val_data = data[split:]
 
 # BATCHING
+
+def get_batch_size(split):
+    data = train_data if split == "train" else val_data
+
+    ix = torch.randint(len(data) - CONTEXT_LENGTH, (BATCH_SIZE))
+
+    x = torch.stack([
+        data[i:i+CONTEXT_LENGTH]
+        for i in ix
+    ])
+    y = torch.stack([
+        data[i+1:i+CONTEXT_LENGTH + 1]
+        for i in ix
+    ])
+    return x.to(device), y.to(device)
+    

@@ -153,3 +153,24 @@ def repeat_kv(x, n_rep):
         .expand(b, n_kv, n_rep, seq, hd)
         .reshape(b, n_kv * n_rep, seq, hd)
     )
+
+# GQA attention
+# GQA stands for grouped query attention where we use multiple
+# queries but solved by 2 keys and 2 values, makes it more 
+# efficient and optimum
+
+class GQA_Attention(nn.Module):
+    # __init__ is used to make a constructor
+    def __init__(self, n_kv_heads, d_model, n_heads):
+        super().__init__()
+
+        self.n_heads = n_heads
+        self.n_kv_heads = n_kv_heads
+        self.d_model = d_model // n_heads
+        self.n_rep = n_heads // n_kv_heads
+
+        self.q_proj = nn.Linear(
+            d_model,
+            n_heads * self.d_model,
+            bias = False
+        )

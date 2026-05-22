@@ -1,3 +1,4 @@
+# nn.ReLu is the activation function
 # LLM
 # Rotary position embedding
 # Multi-head attention
@@ -81,6 +82,9 @@ def get_batch_size(split):
 # RMSNORM
 # Normalizing the input before passing it 
 # to make sure it doesn't go out of bounds
+
+# instead of mean + variance, I use the RMS Normalization technique
+
 class RMSNorm(nn.Module):
     def __init__(self, dim, eps = 1e-6):
         super().__init__()
@@ -90,8 +94,8 @@ class RMSNorm(nn.Module):
 
     def forward(self, x):
         rms = torch.sqrt(
-            x.pow(2).mean(dim = -1, keepdim = True)
+            x.pow(2).mean(dim =-1, keepdim = True)
             + self.eps
         )
-
-        return (x / rms) * self.weight
+        x = (x / rms) * self.weight
+        return x

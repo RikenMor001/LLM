@@ -117,3 +117,25 @@ def parameters_arrange(head_dim, max_seq_len, base = 10000.0):
 
 # turn it with a certain angle to make sure you position 
 # it correctly
+
+def apply_rope(x, cos, sin):
+    seq_len = x.shape[2] # sequence length keeping it as 2D tensor
+
+    # then I give angles those are cos and sin to the tensor x
+    # why do we need pytorch? because tensor works with pytorch
+
+    cos = cos[:seq_len].unsqueeze(0).unsqueeze(0).to(x.device)
+    sin = sin[:seq_len].unsqueeze(0).unsqueeze(0).to(x.device)
+
+    # giving the tensor x position
+    # Keeping all the previous dimensions unchanged 
+    # only changing the last dimension
+    x = x[..., ::2]
+    y = x[..., 1::2]
+
+    # two outputs, one you add with cos and other with sin 
+    # because we want to keep the position of the tensor x
+    output1 = x * cos - y * sin
+    output2 = x * sin + y * cos
+
+    return torch.stack(output1, output2, dim=-1).flatten(-2)

@@ -63,7 +63,6 @@ train_data = data[:split]
 val_data = data[split:]
 
 # BATCHING
-
 def get_batch_size(split):
     data = train_data if split == "train" else val_data
 
@@ -79,12 +78,12 @@ def get_batch_size(split):
     ])
     return x.to(device), y.to(device)
 
-# RMSNORM
+
 # Normalizing the input before passing it 
 # to make sure it doesn't go out of bounds
 
 # instead of mean + variance, I use the RMS Normalization technique
-
+# RMSNORM
 class RMSNorm(nn.Module):
     def __init__(self, dim, eps = 1e-6):
         super().__init__()
@@ -99,3 +98,22 @@ class RMSNorm(nn.Module):
         )
         x = (x / rms) * self.weight
         return x
+
+# After Loading data, I batched the data and normalized it
+# using the RMS Normalization technique, next is 
+# ROPE (Rotary Position Embedding)
+
+def parameters_arrange(head_dim, max_seq_len, base = 10000.0):
+    freqs = 1.0 / (
+        base ** (
+            torch.arange(0, head_dim, 2).float() / head_dim
+        )
+    )
+
+    positions = torch.arange(max_seq_len).float()
+    angles = torch.outer(positions, freqs)
+
+    return torch.cos(angles), torch.sin(angles)
+
+# turn it with a certain angle to make sure you position 
+# it correctly

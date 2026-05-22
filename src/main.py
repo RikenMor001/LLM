@@ -139,3 +139,17 @@ def apply_rope(x, cos, sin):
     output2 = x * sin + y * cos
 
     return torch.stack(output1, output2, dim=-1).flatten(-2)
+
+# Repeat KV, k = key, v = value
+def repeat_kv(x, n_rep):
+    if n_rep == 1:
+        return x
+
+    b, n_kv, seq, hd = x.shape
+
+    return (
+        x[:, :, None, :, :] # just change the middle dimension
+        # everything else remain the same, the first 2 and last 2
+        .expand(b, n_kv, n_rep, seq, hd)
+        .reshape(b, n_kv * n_rep, seq, hd)
+    )

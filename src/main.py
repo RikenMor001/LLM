@@ -169,7 +169,29 @@ class GQA_Attention(nn.Module):
         self.d_model = d_model // n_heads
         self.n_rep = n_heads // n_kv_heads
 
+        # query projection
         self.q_proj = nn.Linear(
+            d_model,
+            n_heads * self.d_model,
+            bias = False
+        )
+
+        # key projection
+        self.k_proj = nn.Linear(
+            d_model,
+            n_heads * self.d_model,
+            bias = False
+        )
+
+        # value projection
+        self.v_proj = nn.Linear(
+            d_model,
+            n_heads * self.d_model,
+            bias = False
+        )
+
+        # output projection
+        self.o_proj = nn.Linear(
             d_model,
             n_heads * self.d_model,
             bias = False

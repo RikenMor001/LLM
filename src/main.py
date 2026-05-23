@@ -196,3 +196,55 @@ class GQA_Attention(nn.Module):
             n_heads * self.d_model,
             bias = False
         )
+
+        def forward(self, x, x_cos, x_sin):
+            b, seq, _ = x.shape
+
+            q = self.q_proj(x)
+            v = self.v_proj(x)
+            k = self.k_proj(x)
+
+            q = q.view(
+                b,
+                seq,
+                self.n_heads,
+                self.head_dim
+            ).transpose(1, 2)
+
+            k = k.view(
+                b,
+                seq,
+                self.head_dim,
+                self.n_kv_heads
+            ).transpose(1, 2)
+
+            v = v.view(
+                b, 
+                seq,
+                self.head_dim,
+                self.n_kv_heads
+            ).transpose(1, 2)
+
+        q = apply_rope(q, x_cos, x_sin)
+        k = apply_rope(k, x_sin, x_cos)
+
+        v = repeat_kv(v, self.n_rep)
+        k = repeat_kv(k, self.n_rep)
+
+        scale = 1.0 / math.sqrt(self.head_dim)
+        scores = torch(q @ k.transpose(-2, -1)) * scale
+
+        mask = torch.triu(
+            torch.ones(seq, seq, device = x.device),
+            diagonal = 1
+        ).bool()
+
+        scores = scores.masked_fill(mask, float("-inf"))
+        weights = F.softmax(scores, dim = -1)
+        weights = F.dropout(
+            weights,
+            p=DROPOUT,
+            training = self.training
+        )
+
+        out = weights @ v

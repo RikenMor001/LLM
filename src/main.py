@@ -248,3 +248,10 @@ class GQA_Attention(nn.Module):
         )
 
         out = weights @ v
+        out = out.transpose(1, 2).contiguous().view(
+            b,
+            seq,
+            -1
+        )
+
+        return self.o_proj(out)

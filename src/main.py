@@ -262,16 +262,17 @@ class MiniLLM(nn.Module):
     def __init__(self):
         super().__init__()
 
-# Token IDs → Embeddings → Transformer Blocks → Normalization → 
-# Linear Head → Logits → Loss (optional)
+        self.token_embedding = nn.Embedding(len(chars), D_MODEL)
 
-self.token_embedding = nn.Embedding(
-    VOCAB_SIZE, D_MODEL
-)
+        self.layers = nn.ModuleList([
+        TransformerBlock()
+        for _ in range(N_LAYERS)
+    ])
 
-self.layers = nn.ModuleList([
-    TransformerBlock()
-    for _ in range(N_LAYERS)
-])
+        self.norm = RMSNorm(D_MODEL)
 
-self.norm = RMSNorm(D_MODEL)
+        self.lm_head = nn.Linear(
+        D_MODEL,
+        len(chars),
+        bias = False
+    )

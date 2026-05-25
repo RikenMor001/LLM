@@ -255,3 +255,10 @@ class GQA_Attention(nn.Module):
         )
 
         return self.o_proj(out)
+
+# Full model
+
+class MiniLLM(nn.Module):
+    def __init__(self):
+        super().__init__()
+

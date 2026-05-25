@@ -276,3 +276,33 @@ class MiniLLM(nn.Module):
         len(chars),
         bias = False
     )
+
+    # Weight tying so I impose rope.sin and rope.cos
+        self.lm_head_weight = self.token_emb.weight
+
+        self.rope_sin, self.rope_cos = precompute_rope_freqs(
+            HEAD_DIM,
+            MAX_SEQ_LEN
+        )
+
+        def forward(self, idx, targets = None):
+            x = self.token_embedding(idx)
+
+            for layer in self.layers:
+                x = layer(
+                    x,
+                    self.rope_sin,
+                    self.rope_cos
+                )
+
+            x = self.norm(x)
+            logits = self.lm_head(x)
+            loss = None
+
+            if targets is not None:
+                loss = F.cross_entropy(
+                    logits.view(-1, 
+                    logits.size(-1)),
+                    targets.view(-1))
+
+            return logits, loss

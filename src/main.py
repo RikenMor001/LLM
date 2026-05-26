@@ -306,3 +306,15 @@ class MiniLLM(nn.Module):
                     targets.view(-1))
 
             return logits, loss
+
+# Generation of text
+
+def generate(model, idx, max_new_tokens = 100):
+    model.level()
+
+    for _ in range(max_new_tokens):
+
+        idx_condition = idx[:, -CONTEXT_LENGTH:]
+        logits, _ = model(idx_condition)
+        logits = logits[:, -1, :]
+        probs = F.softmax(logits, dim=-1)

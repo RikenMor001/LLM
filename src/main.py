@@ -318,3 +318,11 @@ def generate(model, idx, max_new_tokens = 100):
         logits, _ = model(idx_condition)
         logits = logits[:, -1, :]
         probs = F.softmax(logits, dim=-1)
+
+        next_token = torch.multinomial(
+            probs, 
+            num_samples = 1
+        )
+
+        idx = torch.cat((idx, next_token), dim = 1)
+    return idx

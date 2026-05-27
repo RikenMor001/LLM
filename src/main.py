@@ -235,7 +235,24 @@ class GQA_Attention(nn.Module):
             mask = torch.triu(
                 torch.ones(seq, seq, device = x.device),
                 diagonal = 1 # mask the upper triangle to avoid future tokens
+            ).bool() # returns a boolen tensor
+
+            # inf stands for infinity which should be negative
+            scores = scores.masked_fill(mask, float("-inf"))
+            weights = F.softmax(scores, dim = -1)
+
+            weights = F.dropout(
+                weights,
+                p = DROPOUT,
+                training = self.training
             )
+
+            out = weights @ v
+            out = out.transpose(1, 2).contiguous().view(b, seq, -1)
+            out = self.o_proj(out)
+            return out
+
+
 
 # Transformer Block
 class TransformerBlock(nn.Module):

@@ -159,6 +159,8 @@ def repeat_kv(x, n_rep):
 # queries but solved by 2 keys and 2 values, makes it more 
 # efficient and optimum
 
+# GQA is like a golden cross over for LLM's 
+
 class GQA_Attention(nn.Module):
     def __init__(self, n_kv_heads, d_model, n_heads):
         super().__init__()
@@ -191,6 +193,42 @@ class GQA_Attention(nn.Module):
             self.head_dim * n_heads,
             bias = False
         )
+
+        def forward(self, x, rope_cos, rope_sin):
+            b, seq, _ = x.shape
+            q = self.q_proj(x)
+            k = self.k_proj(x)
+            v = self.v_proj(x)
+
+            q = q.view(
+                b, 
+                seq, 
+                self.n_heads,
+                self.head_dim
+            ).transpose(1, 2)
+
+            k = k.view(
+                b,
+                seq,
+                self.n_kv_heads,
+                self.head_dim
+            ).transpose(1, 2)
+
+            v = v.view(
+                b, 
+                seq, 
+                self.n_kv_heads,
+                self.head_dim
+            ).transpose(1, 2)
+
+            # apply rope to q and k
+
+            q = apply_rope(q, rope_cos, rope_sin)
+            k = apply_rope(k, rope_cos, rope_sin)
+
+            # repeat kv
+            k = repeat_kv(k, self.n_rep)
+            v = repeat_kv(k, self.n_rep)
 
 # Transformer Block
 class TransformerBlock(nn.Module):

@@ -230,6 +230,13 @@ class GQA_Attention(nn.Module):
             k = repeat_kv(k, self.n_rep)
             v = repeat_kv(k, self.n_rep)
 
+            scale = 1.0 / math.sqrt(self.head_dim)
+            scores = (q @ k.transpose(-2, -1)) * scale
+            mask = torch.triu(
+                torch.ones(seq, seq, device = x.device),
+                diagonal = 1 # mask the upper triangle to avoid future tokens
+            )
+
 # Transformer Block
 class TransformerBlock(nn.Module):
     def __init__(self):

@@ -256,8 +256,17 @@ class GQA_Attention(nn.Module):
 
         return self.o_proj(out)
 
-# Full model
+# Transformer Block
+class TransformerBlock(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.attention = GQA_Attention(
+            N_KV_HEADS,
+            D_MODEL,
+            N_HEADS
+        )
 
+# Full model
 class MiniLLM(nn.Module):
     def __init__(self):
         super().__init__()
@@ -326,3 +335,12 @@ def generate(model, idx, max_new_tokens = 100):
 
         idx = torch.cat((idx, next_token), dim = 1)
     return idx
+
+# Creating model, last step
+
+model = MiniLLM().to(device)
+
+print(
+    "Total parameters: ",
+    sum(p.numel() for p in model.parameters())
+)

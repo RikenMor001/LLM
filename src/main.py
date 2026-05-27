@@ -164,8 +164,33 @@ class GQA_Attention(nn.Module):
         super().__init__()
         self.n_heads = n_heads
         self.n_kv_heads = n_kv_heads
-        
-        self.d_model = d_model
+
+        self.head_dim = d_model // n_heads
+        self.n_rep = n_heads // n_kv_heads
+
+        self.q_proj = nn.Linear(
+            d_model,
+            self.head_dim * n_heads,
+            bias = False
+        )
+
+        self.k_proj = nn.Linear(
+            d_model,
+            self.head_dim * n_heads,
+            bias = False
+        )
+
+        self.v_proj = nn.Linear(
+            d_model,
+            self.head_dim * n_heads,
+            bias = False
+        )
+
+        self.o_proj = nn.Linear(
+            d_model,
+            self.head_dim * n_heads,
+            bias = False
+        )
 
 # Transformer Block
 class TransformerBlock(nn.Module):

@@ -160,101 +160,12 @@ def repeat_kv(x, n_rep):
 # efficient and optimum
 
 class GQA_Attention(nn.Module):
-    # __init__ is used to make a constructor
     def __init__(self, n_kv_heads, d_model, n_heads):
         super().__init__()
-
         self.n_heads = n_heads
         self.n_kv_heads = n_kv_heads
-        self.d_model = d_model // n_heads
-        self.n_rep = n_heads // n_kv_heads
-
-        # query projection
-        self.q_proj = nn.Linear(
-            d_model,
-            n_heads * self.d_model,
-            bias = False
-        )
-
-        # key projection
-        self.k_proj = nn.Linear(
-            d_model,
-            n_heads * self.d_model,
-            bias = False
-        )
-
-        # value projection
-        self.v_proj = nn.Linear(
-            d_model,
-            n_heads * self.d_model,
-            bias = False
-        )
-
-        # output projection
-        self.o_proj = nn.Linear(
-            d_model,
-            n_heads * self.d_model,
-            bias = False
-        )
-
-        def forward(self, x, x_cos, x_sin):
-            b, seq, _ = x.shape
-
-            q = self.q_proj(x)
-            v = self.v_proj(x)
-            k = self.k_proj(x)
-
-            q = q.view(
-                b,
-                seq,
-                self.n_heads,
-                self.head_dim
-            ).transpose(1, 2)
-
-            k = k.view(
-                b,
-                seq,
-                self.head_dim,
-                self.n_kv_heads
-            ).transpose(1, 2)
-
-            v = v.view(
-                b, 
-                seq,
-                self.head_dim,
-                self.n_kv_heads
-            ).transpose(1, 2)
-
-        q = apply_rope(q, x_cos, x_sin)
-        k = apply_rope(k, x_sin, x_cos)
-
-        v = repeat_kv(v, self.n_rep)
-        k = repeat_kv(k, self.n_rep)
-
-        scale = 1.0 / math.sqrt(self.head_dim)
-        scores = torch(q @ k.transpose(-2, -1)) * scale
-
-        mask = torch.triu(
-            torch.ones(seq, seq, device = x.device),
-            diagonal = 1
-        ).bool()
-
-        scores = scores.masked_fill(mask, float("-inf"))
-        weights = F.softmax(scores, dim = -1)
-        weights = F.dropout(
-            weights,
-            p=DROPOUT,
-            training = self.training
-        )
-
-        out = weights @ v
-        out = out.transpose(1, 2).contiguous().view(
-            b,
-            seq,
-            -1
-        )
-
-        return self.o_proj(out)
+        
+        self.d_model = d_model
 
 # Transformer Block
 class TransformerBlock(nn.Module):
@@ -265,6 +176,27 @@ class TransformerBlock(nn.Module):
             D_MODEL,
             N_HEADS
         )
+
+        self.feed_forward = FeedForward(
+            D_MODEL,
+            FFN_HIDDEN
+        )
+
+        self.norm = RMSNorm(D_MODEL)
+        self.norm2 = RMSNorm(D_MODEL)
+
+        def forward(self, x, rope_cos, rope_sin):
+            x = x + self.attention(
+                self.norm(x),
+                rope_cos,
+                rope_sin
+            )
+
+            x = x + self.feed_forward(
+                self.norm2(x)
+            )
+            return x
+            
 
 # Full model
 class MiniLLM(nn.Module):
@@ -317,7 +249,6 @@ class MiniLLM(nn.Module):
             return logits, loss
 
 # Generation of text
-
 def generate(model, idx, max_new_tokens = 100):
     model.level()
 

@@ -252,12 +252,11 @@ class GQA_Attention(nn.Module):
             out = self.o_proj(out)
             return out
 
-
-
 # Transformer Block
 class TransformerBlock(nn.Module):
     def __init__(self):
         super().__init__()
+
         self.attention = GQA_Attention(
             N_KV_HEADS,
             D_MODEL,
@@ -269,22 +268,9 @@ class TransformerBlock(nn.Module):
             FFN_HIDDEN
         )
 
-        self.norm = RMSNorm(D_MODEL)
+        self.norm1 = RMSNorm(D_MODEL)
         self.norm2 = RMSNorm(D_MODEL)
-
-        def forward(self, x, rope_cos, rope_sin):
-            x = x + self.attention(
-                self.norm(x),
-                rope_cos,
-                rope_sin
-            )
-
-            x = x + self.feed_forward(
-                self.norm2(x)
-            )
-            return x
-            
-
+        
 # Full model
 class MiniLLM(nn.Module):
     def __init__(self):

@@ -9,6 +9,7 @@
 
 import math # square root and scaling attention scores; RMS normalization; SWIGLU
 import torch # tensors, GPU acceleration, neural network layers, gradients, and optimization
+from torch.fx import Transformer
 import torch.nn as nn # linear layers, embeddings, module classes
 import torch.nn.functional as F # softmax, silu, dropout, cross entropy
 
@@ -290,11 +291,26 @@ class TransformerBlock(nn.Module):
 class MiniLLM(nn.module):
     def __init__(self):
         super().__init__()
+    # These 3 steps are necessary to use neural network modules
+        self.token_embedding = nn.Embedding(
+            len(chars),
+            D_MODEL
+        )
 
-    # Weight tying so I impose rope.sin and rope.cos
-        self.lm_head_weight = self.token_emb.weight
+        self.layers = nn.ModuleList([
+            TransformerBlock()
+            for _ in range(N_LAYERS)
+        ])
 
-        self.rope_sin, self.rope_cos = precompute_rope_freqs(
+        self.norm = RMSNorm(D_MODEL)
+
+        self.lm_head = nn.Linear(
+            D_MODEL,
+            len(chars),
+            bias=False
+        )
+
+        self.rope_sin, self.rope_cos = parameters_arrange(
             HEAD_DIM,
             MAX_SEQ_LEN
         )

@@ -9,7 +9,9 @@
 
 import math # square root and scaling attention scores; RMS normalization; SWIGLU
 import torch # tensors, GPU acceleration, neural network layers, gradients, and optimization
-from torch._dynamo.polyfills.pytree import tree_unflatten
+
+#from torch._dynamo.polyfills.pytree import tree_unflatten
+
 from torch.fx import Transformer
 import torch.nn as nn # linear layers, embeddings, module classes
 import torch.nn.functional as F # softmax, silu, dropout, cross entropy
@@ -397,7 +399,7 @@ print(
 # Ask Gemini
 
 while True:
-    user_input = input("Enter your name: ")
+    user_input = input("Ask your question: ")
     if user_input == "exit":
         break
 

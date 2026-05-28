@@ -9,9 +9,11 @@
 
 import math # square root and scaling attention scores; RMS normalization; SWIGLU
 import torch # tensors, GPU acceleration, neural network layers, gradients, and optimization
+from torch._dynamo.polyfills.pytree import tree_unflatten
 from torch.fx import Transformer
 import torch.nn as nn # linear layers, embeddings, module classes
 import torch.nn.functional as F # softmax, silu, dropout, cross entropy
+from gemini_chat import ask_gemini
 
 if torch.backends.mps.is_available():
     device = torch.device("mps")
@@ -391,3 +393,14 @@ print(
     "Total parameters: ",
     sum(p.numel() for p in model.parameters())
 )
+
+# Ask Gemini
+
+while True:
+    user_input = input("Enter your name: ")
+    if user_input == "exit":
+        break
+
+    response = ask_gemini(user_input)
+    print("GEMINI: ")
+    print(response)

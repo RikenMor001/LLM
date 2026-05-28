@@ -253,6 +253,34 @@ class GQA_Attention(nn.Module):
             out = self.o_proj(out)
             return out
 
+# Feed Forward class
+
+class FeedForward(nn.Module):
+    def __init__(self, dim, hidden_dim):
+        super().__init__()
+
+        self.w1 = nn.Linear(
+            dim,
+            hidden_dim,
+            bias = False
+        )
+        self.w2 = nn.Linear(
+            hidden_dim,
+            dim,
+            bias = False
+        )
+        self.w3 = nn.Linear(
+            dim,
+            hidden_dim,
+            bias = False
+        )
+
+    def forward(self, x):
+
+        return self.w2(
+            F.silu(self.w1(x)) * self.w3(x)
+        )
+
 # Transformer Block
 # add attention, then normalise before FFN, and then feed forward
 class TransformerBlock(nn.Module):
@@ -291,7 +319,6 @@ class TransformerBlock(nn.Module):
 class MiniLLM(nn.Module):
     def __init__(self):
         super().__init__()
-    # These 3 steps are necessary to use neural network modules
         self.token_embedding = nn.Embedding(
             len(chars),
             D_MODEL
@@ -315,15 +342,15 @@ class MiniLLM(nn.Module):
             MAX_SEQ_LEN 
         )
 
-        def forward(self, idx, targets = None):
-            x = self.token_embedding(idx)
+    def forward(self, idx, targets = None):
+        x = self.token_embedding(idx)
 
-            for layer in self.layers:
-                x = layer(
-                    x,
-                    self.rope_sin,
-                    self.rope_cos
-                )
+        for layer in self.layers:
+            x = layer(
+                x,
+                self.rope_sin,
+                self.rope_cos
+            )
 
             x = self.norm(x)
             logits = self.lm_head(x)

@@ -288,7 +288,7 @@ class TransformerBlock(nn.Module):
             return x
 
 # Full model
-class MiniLLM(nn.module):
+class MiniLLM(nn.Module):
     def __init__(self):
         super().__init__()
     # These 3 steps are necessary to use neural network modules
@@ -312,7 +312,7 @@ class MiniLLM(nn.module):
 
         self.rope_sin, self.rope_cos = parameters_arrange(
             HEAD_DIM,
-            MAX_SEQ_LEN
+            MAX_SEQ_LEN 
         )
 
         def forward(self, idx, targets = None):

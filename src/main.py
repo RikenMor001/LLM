@@ -253,6 +253,7 @@ class GQA_Attention(nn.Module):
             return out
 
 # Transformer Block
+# add attention, then normalise before FFN, and then feed forward
 class TransformerBlock(nn.Module):
     def __init__(self):
         super().__init__()
@@ -271,25 +272,24 @@ class TransformerBlock(nn.Module):
         self.norm1 = RMSNorm(D_MODEL)
         self.norm2 = RMSNorm(D_MODEL)
         
+        def forward(self, x, rope_cos, rope_sin):
+
+            x = x + self.attention(
+                self.norm1(x),
+                rope_sin,   
+                rope_cos,
+            )
+
+            x = x + self.feed_forward(
+                self.norm2(x)
+            )
+
+            return x
+
 # Full model
-class MiniLLM(nn.Module):
+class MiniLLM(nn.module):
     def __init__(self):
         super().__init__()
-
-        self.token_embedding = nn.Embedding(len(chars), D_MODEL)
-
-        self.layers = nn.ModuleList([
-        TransformerBlock()
-        for _ in range(N_LAYERS)
-    ])
-
-        self.norm = RMSNorm(D_MODEL)
-
-        self.lm_head = nn.Linear(
-        D_MODEL,
-        len(chars),
-        bias = False
-    )
 
     # Weight tying so I impose rope.sin and rope.cos
         self.lm_head_weight = self.token_emb.weight

@@ -305,7 +305,7 @@ class TransformerBlock(nn.Module):
         self.norm1 = RMSNorm(D_MODEL)
         self.norm2 = RMSNorm(D_MODEL)
         
-        def forward(self, x, rope_cos, rope_sin):
+    def forward(self, x, rope_cos, rope_sin):
 
             x = x + self.attention(
                 self.norm1(x),

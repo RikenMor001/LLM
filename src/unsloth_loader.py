@@ -30,3 +30,7 @@ def add_lora(model):
         random_state = SEED,
         use_rslora = True
     )
+
+def set_inference_mode(model):
+    FastLanguageModel.for_inference(model)
+    return model

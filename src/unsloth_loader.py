@@ -19,15 +19,15 @@ def add_lora(model):
         model,
         r=32,
         target_modules = [
-            "q_proj","k_proj","v_proj","o_proj",
-            "gate_proj","down_proj","up_proj",
-            "embed_tokens","lm_head"
+            "q_proj","k_proj","v_proj","o_proj", # focus on words and context
+            "gate_proj","down_proj","up_proj", # focus on knowledge storage and pattern recognition
+            "embed_tokens","lm_head" # embed_tokens, converts words into vectors and lm_head converts vectors into words
         ],
-        lora_alpha = 32,
-        lora_dropout = 0.05,
-        bias = "none",
-        use_gradient_checkpoint = "unsloth",
-        random_state = SEED,
+        lora_alpha = 32, # provides stability
+        lora_dropout = 0.05, # randomly drops 5% neurons to prevent overfitting
+        bias = "none", # No bias term
+        use_gradient_checkpoint = "unsloth", #Enables gradient checkpointing for memory efficiency
+        random_state = SEED, # reproducibility
         use_rslora = True
     )
 

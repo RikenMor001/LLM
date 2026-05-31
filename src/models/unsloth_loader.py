@@ -17,7 +17,7 @@ def load_model():
 def add_lora(model):
     return FastLanguageModel.get_peft_model(
         model,
-        r=32,
+        r=32, 
         target_modules = [
             "q_proj","k_proj","v_proj","o_proj", # focus on words and context
             "gate_proj","down_proj","up_proj", # focus on knowledge storage and pattern recognition

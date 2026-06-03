@@ -6,17 +6,15 @@ class Metrics:
         self.losses = []
         self.steps = []
 
-    def save_losses(self, loss, step):
+    # updates the values of the losses and steps
+    def update(self, step:int, loss: float):
         self.losses.append(loss)
         self.steps.append(step)
-    
+
     def calculate_avg_loss(self):
-        return sum(self.losses) / len(self.losses)
+        calculated_loss = sum(self.losses) / len(self.losses)
+        if not self.losses:
+            return None
+        else:
+            return calculated_loss
 
-    def calculate_moving_average(self):
-        moving_averages = []
-        for i in range(len(self.losses)):
-            window = self.losses[i:i+self.window]
-            moving_averages.append(sum(window)) / len(window)
-
-        return moving_averages

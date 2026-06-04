@@ -9,7 +9,7 @@ def build_prompt(user_input):
 
     for prompts in conversation_history:
         context.append(f"User: {prompts["user"]}")
-        context.append(f"Assistant: {prompts["Assistant"]}")
+        context.append(f"Assistant: {prompts["assistant"]}")
 
     # Add user_input after iterations are done
     context.append(f"User input: {user_input}")
@@ -19,9 +19,7 @@ def build_prompt(user_input):
 # add it to the memory
 
 def add_to_memory(user_input, assistant_responses):
-    conversation_history.append(
-        f"User input: {user_input}"
-    )
-    conversation_history.append(
-        f"Assistant response: {assistant_responses}"
-    )
+    conversation_history.append({
+        "user": user_input,
+        "assistant": assistant_responses
+    })

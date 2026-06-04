@@ -2,8 +2,8 @@
 # LLM
 # Rotary position embedding
 # Multi-head attention
-# Grouped query attention
 # RMS normalization
+# Grouped query attention
 # SWIGLU
 # Weight tying
 
@@ -16,6 +16,7 @@ from torch.fx import Transformer
 import torch.nn as nn # linear layers, embeddings, module classes
 import torch.nn.functional as F # softmax, silu, dropout, cross entropy
 from gemini_chat import ask_gemini
+from memory import build_prompt, add_to_memory
 
 if torch.backends.mps.is_available():
     device = torch.device("mps")
@@ -403,6 +404,9 @@ while True:
     if user_input == "exit":
         break
 
-    response = ask_gemini(user_input)
+    fetch_prompt = build_prompt(user_input)
+    response = ask_gemini(fetch_prompt)
     print("GEMINI: ")
-    print(response)
+    print(response, '\n')
+    
+    add_to_memory(fetch_prompt, response)

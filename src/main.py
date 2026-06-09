@@ -184,7 +184,7 @@ class GQA_Attention(nn.Module):
             bias = False
         )
 
-        def forward(self, x, rope_cos, rope_sin):
+    def forward(self, x, rope_cos, rope_sin):
             b, seq, _ = x.shape
             q = self.q_proj(x)
             k = self.k_proj(x)

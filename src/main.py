@@ -17,6 +17,7 @@ import torch.nn as nn # linear layers, embeddings, module classes
 import torch.nn.functional as F # softmax, silu, dropout, cross entropy
 from gemini_chat import ask_gemini
 from memory import build_prompt, add_to_memory
+from config import BATCH_SIZE, CONTEXT_LENGTH, D_MODEL, N_LAYERS, N_HEADS, N_KV_HEADS, HEAD_DIM, FFN_HIDDEN, DROPOUT, MAX_SEQ_LEN
 
 if torch.backends.mps.is_available():
     device = torch.device("mps")
@@ -28,23 +29,6 @@ else:
 # enables faster matrix multiplication for higher precision
 # Given that everything is a matrix multiplication here
 torch.set_float32_matmul_precision("high")
-
-# config
-
-BATCH_SIZE = 32
-CONTEXT_LENGTH = 128
-MAX_STEPS = 3000
-EVAL_INTERVAL = 200
-LEARNING_RATE = 3e-4
-
-D_MODEL = 256
-N_LAYERS = 4
-N_HEADS = 8
-N_KV_HEADS = 2 # This is grouped query attention
-HEAD_DIM = D_MODEL // N_HEADS
-FFN_HIDDEN = 680 # FFN = Feed Forward Network
-DROPOUT = 0.2
-MAX_SEQ_LEN = 256 # This is the maximum sequence length for the model
 
 # LOADING DATA
 with open("input.txt", "r", encoding = "utf-8") as f:

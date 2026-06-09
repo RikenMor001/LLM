@@ -103,7 +103,7 @@ def parameters_arrange(head_dim, max_seq_len, base = 10000.0):
     positions = torch.arange(max_seq_len).float()
     angles = torch.outer(positions, freqs)
 
-    return torch.cos(angles), torch.sin(angles)
+    return torch.sin(angles), torch.cos(angles)
 
 # turn it with a certain angle to make sure you position 
 # it correctly
@@ -120,13 +120,13 @@ def apply_rope(x, cos, sin):
     # giving the tensor x position
     # Keeping all the previous dimensions unchanged 
     # only changing the last dimension
-    x = x[..., ::2]
-    y = x[..., 1::2]
+    x_even = x[..., ::2]
+    x_odd = x[..., 1::2]
 
     # two outputs, one you add with cos and other with sin 
     # because we want to keep the position of the tensor x
-    output1 = x * cos - y * sin
-    output2 = x * sin + y * cos
+    output1 = x_even * cos - x_odd* sin
+    output2 = x_even * sin + x_odd * cos
 
     return torch.stack(output1, output2, dim=-1).flatten(-2)
 
@@ -168,13 +168,13 @@ class GQA_Attention(nn.Module):
 
         self.k_proj = nn.Linear(
             d_model,
-            self.head_dim * n_heads,
+            self.head_dim * n_kv_heads,
             bias = False
         )
 
         self.v_proj = nn.Linear(
             d_model,
-            self.head_dim * n_heads,
+            self.head_dim * n_kv_heads,
             bias = False
         )
 
@@ -218,7 +218,7 @@ class GQA_Attention(nn.Module):
 
             # repeat kv
             k = repeat_kv(k, self.n_rep)
-            v = repeat_kv(k, self.n_rep)
+            v = repeat_kv(v, self.n_rep)
 
             scale = 1.0 / math.sqrt(self.head_dim)
             scores = (q @ k.transpose(-2, -1)) * scale
@@ -294,8 +294,8 @@ class TransformerBlock(nn.Module):
 
             x = x + self.attention(
                 self.norm1(x),
-                rope_sin,   
-                rope_cos,
+                rope_cos,   
+                rope_sin,
             )
 
             x = x + self.feed_forward(
@@ -341,7 +341,7 @@ class MiniLLM(nn.Module):
                 self.rope_cos
             )
 
-            x = self.norm(x)
+        x = self.norm(x)
             logits = self.lm_head(x)
             loss = None
 
@@ -351,7 +351,7 @@ class MiniLLM(nn.Module):
                     logits.size(-1)),
                     targets.view(-1))
 
-            return logits, loss
+        return logits, loss
 
 # Generation of text
 def generate(model, idx, max_new_tokens = 100):

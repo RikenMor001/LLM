@@ -322,20 +322,41 @@ class MiniLLM(nn.Module):
             )
 
         x = self.norm(x)
-            logits = self.lm_head(x)
-            loss = None
+        loss = None
+        logits = self.lm_head(x)
 
-            if targets is not None:
+        if targets is not None:
                 loss = F.cross_entropy(
                     logits.view(-1, 
                     logits.size(-1)),
                     targets.view(-1))
 
         return logits, loss
+    
+# Validation function
+@torch.no_grad()
+def estimate_loss():
+    model.eval()
+    losses = {}
 
+    for split in ["train", "val"]:
+        split_losses = []
+
+        for _ in range(20):
+            x, y = get_batch_size(split)
+            _, loss = model(x, y)
+            split_losses.append(loss.item())
+
+        losses[split] = sum(split_losses) / len(split_losses)
+    
+    model.train()
+    print("Losses printed")
+    return losses
+
+# training loop
 # Generation of text
 def generate(model, idx, max_new_tokens = 100):
-    model.level()
+    model.eval()
 
     for _ in range(max_new_tokens):
 
@@ -355,6 +376,11 @@ def generate(model, idx, max_new_tokens = 100):
 # Creating model, last step
 
 model = MiniLLM().to(device)
+optimizer = torch.optim.AdamW(
+    model.parameters(),
+    lr = 3e-4,
+    weight_decay=0.01
+)
 
 print(
     "Total parameters: ",

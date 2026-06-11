@@ -401,7 +401,7 @@ for step in range(MAX_STEPS):
         losses = estimate_loss()
 
         print(
-            f"Step{step}"
+            f"Step{step}",
             f"Train Loss: {losses['train']:.4f}"
             f"Val Loss: {losses['val']:.4f}"
         )

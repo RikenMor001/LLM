@@ -18,6 +18,7 @@ import torch.nn.functional as F # softmax, silu, dropout, cross entropy
 from gemini_chat import ask_gemini
 from memory import build_prompt, add_to_memory
 from config import BATCH_SIZE, CONTEXT_LENGTH, D_MODEL, N_LAYERS, N_HEADS, N_KV_HEADS, HEAD_DIM, FFN_HIDDEN, DROPOUT, MAX_SEQ_LEN
+from models import rmsnorm
 
 if torch.backends.mps.is_available():
     device = torch.device("mps")
@@ -67,27 +68,6 @@ def get_batch_size(split):
         for i in ix
     ])
     return x.to(device), y.to(device)
-
-
-# Normalizing the input before passing it 
-# to make sure it doesn't go out of bounds
-
-# instead of mean + variance, I use the RMS Normalization technique
-# RMSNORM
-class RMSNorm(nn.Module):
-    def __init__(self, dim, eps = 1e-6):
-        super().__init__()
-
-        self.eps = eps
-        self.weight = nn.Parameter(torch.ones(dim))
-
-    def forward(self, x):
-        rms = torch.sqrt(
-            x.pow(2).mean(dim =-1, keepdim = True)
-            + self.eps
-        )
-        x = (x / rms) * self.weight
-        return x
 
 # After Loading data, I batched the data and normalized it
 # using the RMS Normalization technique, next is 
@@ -287,8 +267,8 @@ class TransformerBlock(nn.Module):
             FFN_HIDDEN
         )
 
-        self.norm1 = RMSNorm(D_MODEL)
-        self.norm2 = RMSNorm(D_MODEL)
+        self.norm1 = rmsnorm.RMSNorm(D_MODEL)
+        self.norm2 = rmsnorm.RMSNorm(D_MODEL)
         
     def forward(self, x, rope_cos, rope_sin):
 
@@ -318,7 +298,7 @@ class MiniLLM(nn.Module):
             for _ in range(N_LAYERS)
         ])
 
-        self.norm = RMSNorm(D_MODEL)
+        self.norm = rmsnorm.RMSNorm(D_MODEL)
 
         self.lm_head = nn.Linear(
             D_MODEL,

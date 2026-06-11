@@ -17,7 +17,7 @@ import torch.nn as nn # linear layers, embeddings, module classes
 import torch.nn.functional as F # softmax, silu, dropout, cross entropy
 from gemini_chat import ask_gemini
 from memory import build_prompt, add_to_memory
-from config import BATCH_SIZE, CONTEXT_LENGTH, D_MODEL, N_LAYERS, N_HEADS, N_KV_HEADS, HEAD_DIM, FFN_HIDDEN, DROPOUT, MAX_SEQ_LEN
+from config import BATCH_SIZE, CONTEXT_LENGTH, D_MODEL, N_LAYERS, N_HEADS, N_KV_HEADS, HEAD_DIM, FFN_HIDDEN, DROPOUT, MAX_SEQ_LEN, MAX_STEPS
 from models import rmsnorm
 
 if torch.backends.mps.is_available():
@@ -376,11 +376,37 @@ def generate(model, idx, max_new_tokens = 100):
 # Creating model, last step
 
 model = MiniLLM().to(device)
+
+# Optimizer
 optimizer = torch.optim.AdamW(
     model.parameters(),
     lr = 3e-4,
     weight_decay=0.01
 )
+
+model.train()
+for step in range(MAX_STEPS):
+    xb, yb = get_batch_size("train")
+
+    logits, loss = model(xb, yb)
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+
+    if step % 100 == 0:
+        losses = estimate_loss()
+
+        print(
+            f"Step{step}"
+            f"Train Loss: {losses['train']:.4f}"
+            f"Val Loss: {losses['val']:.4f}"
+        )
+
+        if step % 1000 == 0:
+            torch.save(
+                model.state_dict(),
+                "checkpoint.pt"
+            )
 
 print(
     "Total parameters: ",

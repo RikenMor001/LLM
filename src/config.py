@@ -10,3 +10,4 @@ HEAD_DIM = D_MODEL // N_HEADS
 FFN_HIDDEN = 680 # FFN = Feed Forward Network
 DROPOUT = 0.2
 MAX_SEQ_LEN = 256 # This is the maximum sequence length for the model
+MAX_STEPS = 10000

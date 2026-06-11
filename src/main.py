@@ -15,9 +15,8 @@ import torch # tensors, GPU acceleration, neural network layers, gradients, and 
 from torch.fx import Transformer
 import torch.nn as nn # linear layers, embeddings, module classes
 import torch.nn.functional as F # softmax, silu, dropout, cross entropy
-from gemini_chat import ask_gemini
 from memory import build_prompt, add_to_memory
-from config import BATCH_SIZE, CONTEXT_LENGTH, D_MODEL, N_LAYERS, N_HEADS, N_KV_HEADS, HEAD_DIM, FFN_HIDDEN, DROPOUT, MAX_SEQ_LEN, MAX_STEPS
+from config import BATCH_SIZE, CONTEXT_LENGTH, D_MODEL, N_LAYERS, N_HEADS, N_KV_HEADS, FFN_HIDDEN, DROPOUT, MAX_SEQ_LEN, MAX_STEPS, HEAD_DIM
 from models import rmsnorm
 
 if torch.backends.mps.is_available():
@@ -57,7 +56,10 @@ val_data = data[split:]
 def get_batch_size(split):
     data = train_data if split == "train" else val_data
 
-    ix = torch.randint(len(data) - CONTEXT_LENGTH, (BATCH_SIZE))
+    ix = torch.randint(
+        len(data) - CONTEXT_LENGTH, 
+            (BATCH_SIZE, )
+    )
 
     x = torch.stack([
         data[i:i+CONTEXT_LENGTH]
@@ -108,7 +110,7 @@ def apply_rope(x, cos, sin):
     output1 = x_even * cos - x_odd* sin
     output2 = x_even * sin + x_odd * cos
 
-    return torch.stack(output1, output2, dim=-1).flatten(-2)
+    return torch.stack((output1, output2), dim=-1).flatten(-2)
 
 # Repeat KV, k = key, v = value
 def repeat_kv(x, n_rep):
@@ -305,8 +307,10 @@ class MiniLLM(nn.Module):
             len(chars),
             bias=False
         )
+        
+        self.lm_head.weight = self.token_embedding.weight
 
-        self.rope_sin, self.rope_cos = parameters_arrange(
+        self.rope_cos, self.rope_sin = parameters_arrange(
             HEAD_DIM,
             MAX_SEQ_LEN 
         )
@@ -317,8 +321,8 @@ class MiniLLM(nn.Module):
         for layer in self.layers:
             x = layer(
                 x,
-                self.rope_sin,
-                self.rope_cos
+                self.rope_cos,
+                self.rope_sin
             )
 
         x = self.norm(x)
@@ -416,13 +420,24 @@ print(
 # Ask Gemini
 
 while True:
-    user_input = input("Ask your question: ")
-    if user_input == "exit":
+    prompt = input("Your question: ")
+
+    if prompt == "exit":
         break
 
-    fetch_prompt = build_prompt(user_input)
-    response = ask_gemini(fetch_prompt)
-    print("GEMINI: ")
-    print(response, '\n')
-    
-    add_to_memory(fetch_prompt, response)
+    context = torch.tensor(
+        [encode(prompt)],
+        dtype=torch.long,
+        device=device        
+    )
+
+    output = generate(
+        model,
+        context,
+        max_new_tokens=200        
+    )
+
+    print(
+        "LLM",
+        decode(output[0].tolist()) # tolist (returns the tensor as a nested list)
+    )

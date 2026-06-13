@@ -18,6 +18,7 @@ import torch.nn.functional as F # softmax, silu, dropout, cross entropy
 from memory import build_prompt, add_to_memory
 from config import BATCH_SIZE, CONTEXT_LENGTH, D_MODEL, N_LAYERS, N_HEADS, N_KV_HEADS, FFN_HIDDEN, DROPOUT, MAX_SEQ_LEN, MAX_STEPS, HEAD_DIM
 from models import rmsnorm
+from models.unsloth_loader import load_model, add_lora
 
 if torch.backends.mps.is_available():
     device = torch.device("mps")

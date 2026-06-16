@@ -13,5 +13,5 @@ trainer = SFTTrainer(
         output_dir = "outputs",
         num_train_epochs = 1
     )
-    trainer.train()
 )
+trainer.train() 

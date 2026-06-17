@@ -203,24 +203,13 @@ class GQA_Attention(nn.Module):
             k = repeat_kv(k, self.n_rep)
             v = repeat_kv(v, self.n_rep)
 
-            scale = 1.0 / math.sqrt(self.head_dim)
-            scores = (q @ k.transpose(-2, -1)) * scale
-            mask = torch.triu(
-                torch.ones(seq, seq, device = x.device),
-                diagonal = 1 # mask the upper triangle to avoid future tokens
-            ).bool() # returns a boolen tensor
-
-            # inf stands for infinity which should be negative
-            scores = scores.masked_fill(mask, float("-inf"))
-            weights = F.softmax(scores, dim = -1)
-
-            weights = F.dropout(
-                weights,
-                p = DROPOUT,
-                training = self.training
+            out = F.scaled_dot_product_attention(
+                q,
+                k,
+                v,
+                dropout_p=DROPOUT if self.training else 0.0,
+                is_causal=True
             )
-
-            out = weights @ v
             out = out.transpose(1, 2).contiguous().view(b, seq, -1)
             out = self.o_proj(out)
             return out

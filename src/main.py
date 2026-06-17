@@ -19,6 +19,9 @@ from memory import build_prompt, add_to_memory
 from config import BATCH_SIZE, CONTEXT_LENGTH, D_MODEL, N_LAYERS, N_HEADS, N_KV_HEADS, FFN_HIDDEN, DROPOUT, MAX_SEQ_LEN, MAX_STEPS, HEAD_DIM
 from models import rmsnorm
 from models.unsloth_loader import load_model, add_lora
+from torch.amp import autocast
+from torch.amp.grad_scaler import GradScaler
+scaler = GradScaler()
 
 if torch.backends.mps.is_available():
     device = torch.device("mps")
@@ -382,10 +385,14 @@ model.train()
 for step in range(MAX_STEPS):
     xb, yb = get_batch_size("train")
 
-    logits, loss = model(xb, yb)
     optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
+    with autocast(device_type=device.type):
+        logits, loss = model(xb, yb)
+
+    # scale, step and update
+    scaler.scale(loss).backward()
+    scaler.step(optimizer)
+    scaler.update()
 
     if step % 100 == 0:
         losses = estimate_loss()

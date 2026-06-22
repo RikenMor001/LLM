@@ -21,6 +21,8 @@ from models import rmsnorm
 from models.unsloth_loader import load_model, add_lora
 from torch.amp import autocast
 from torch.amp.grad_scaler import GradScaler
+from torch.utils.checkpoint import checkpoint
+
 scaler = GradScaler()
 
 if torch.backends.mps.is_available():
@@ -308,14 +310,18 @@ class MiniLLM(nn.Module):
             MAX_SEQ_LEN 
         )
 
+    # saves memory but slows the speed for training, because it no longer back propogates, so it doesn't save previous runs, but instead what it does
+    # is it runs every layer twice to make it memory efficient. 
     def forward(self, idx, targets = None):
         x = self.token_embedding(idx)
 
-        for layer in self.layers:
-            x = layer(
+        for layers in self.layers:
+            x = checkpoint(
+                layers,
                 x,
                 self.rope_cos,
-                self.rope_sin
+                self.rope_sin,
+                use_reentrant=False
             )
 
         x = self.norm(x)

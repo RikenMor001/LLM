@@ -305,10 +305,13 @@ class MiniLLM(nn.Module):
         
         self.lm_head.weight = self.token_embedding.weight
 
-        self.rope_cos, self.rope_sin = parameters_arrange(
+        rope_cos, rope_sin = parameters_arrange(
             HEAD_DIM,
             MAX_SEQ_LEN 
         )
+
+        self.register_buffer("rope_cos", rope_cos)
+        self.register_buffer("rope_sin", rope_sin)
 
     # saves memory but slows the speed for training, because it no longer back propogates, so it doesn't save previous runs, but instead what it does
     # is it runs every layer twice to make it memory efficient. 

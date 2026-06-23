@@ -18,7 +18,6 @@ import torch.nn.functional as F # softmax, silu, dropout, cross entropy
 from memory import build_prompt, add_to_memory
 from config import BATCH_SIZE, CONTEXT_LENGTH, D_MODEL, N_LAYERS, N_HEADS, N_KV_HEADS, FFN_HIDDEN, DROPOUT, MAX_SEQ_LEN, MAX_STEPS, HEAD_DIM
 from models import rmsnorm
-from models.unsloth_loader import load_model, add_lora
 from torch.amp import autocast
 from torch.amp.grad_scaler import GradScaler
 from torch.utils.checkpoint import checkpoint
@@ -387,7 +386,9 @@ model = MiniLLM().to(device)
 optimizer = torch.optim.AdamW(
     model.parameters(),
     lr = 3e-4,
-    weight_decay=0.01
+    betas = (0.9, 0.95),
+    weight_decay = 0.1,
+    eps = 1e-8
 )
 
 model.train()

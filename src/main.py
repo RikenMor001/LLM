@@ -9,7 +9,6 @@
 
 import math # square root and scaling attention scores; RMS normalization; SWIGLU
 import torch # tensors, GPU acceleration, neural network layers, gradients, and optimization
-
 #from torch._dynamo.polyfills.pytree import tree_unflatten
 
 from torch.fx import Transformer
@@ -21,6 +20,7 @@ from models import rmsnorm
 from torch.amp import autocast
 from torch.amp.grad_scaler import GradScaler
 from torch.utils.checkpoint import checkpoint
+from torch.optim.lr_scheduler import CosineAnnealingLR
 
 scaler = GradScaler()
 
@@ -387,8 +387,14 @@ optimizer = torch.optim.AdamW(
     model.parameters(),
     lr = 3e-4,
     betas = (0.9, 0.95),
-    weight_decay = 0.1,
+    weight_decay = 0.1 ,
     eps = 1e-8
+)
+
+scheduler = CosineAnnealingLR(
+    optimizer,
+    T_max = MAX_STEPS,
+    eta_min = 1e-5
 )
 
 model.train()
@@ -441,9 +447,10 @@ while True:
     output = generate(
         model,
         context,
-        max_new_tokens=200        
+        max_new_tokens=200       
     )
 
+    scheduler.step()
     print(
         "LLM",
         decode(output[0].tolist()) # tolist (returns the tensor as a nested list)

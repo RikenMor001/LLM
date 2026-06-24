@@ -332,10 +332,10 @@ class MiniLLM(nn.Module):
 
         if targets is not None:
                 loss = F.cross_entropy(
-                    logits.view(-1, 
-                    logits.size(-1)),
-                    targets.view(-1))
-
+                    logits.view(-1, logits.size(-1)),
+                    targets.view(-1),
+                    label_smoothing=0.1  # Adding label_smoothing so that it gives mixtuer of the ground truth and an uniform distribution.
+                ),
         return logits, loss
     
 # Validation function
@@ -381,6 +381,7 @@ def generate(model, idx, max_new_tokens = 100):
 # Creating model, last step
 
 model = MiniLLM().to(device)
+torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
 
 # Optimizer
 optimizer = torch.optim.AdamW(

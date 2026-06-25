@@ -400,7 +400,7 @@ model.train()
 for step in range(MAX_STEPS):
     xb, yb = get_batch_size("train")
 
-    optimizer.zero_grad()
+    optimizer.zero_grad(set_to_none=True)
     with autocast(device_type=device.type):
         logits, loss = model(xb, yb)
 
@@ -409,7 +409,9 @@ for step in range(MAX_STEPS):
     scaler.step(optimizer)
     torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
     
+    scaler.step(optimizer)
     scaler.update()
+    scheduler.step()
 
 if step % 100 == 0:
     losses = estimate_loss()
@@ -457,7 +459,6 @@ while True:
 
     print(f"Total time taken {elapsed_time}")
 
-    scheduler.step()
     print(
         "LLM",
         decode(output[0].tolist()) # tolist (returns the tensor as a nested list)

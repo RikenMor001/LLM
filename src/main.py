@@ -9,7 +9,7 @@
 
 import math # square root and scaling attention scores; RMS normalization; SWIGLU
 import torch # tensors, GPU acceleration, neural network layers, gradients, and optimization
-#from torch._dynamo.polyfills.pytree import tree_unflatten
+import time
 
 from torch.fx import Transformer
 import torch.nn as nn # linear layers, embeddings, module classes
@@ -335,7 +335,7 @@ class MiniLLM(nn.Module):
                     logits.view(-1, logits.size(-1)),
                     targets.view(-1),
                     label_smoothing=0.1  # Adding label_smoothing so that it gives mixtuer of the ground truth and an uniform distribution.
-                ),
+                )
         return logits, loss
     
 # Validation function
@@ -411,20 +411,20 @@ for step in range(MAX_STEPS):
     scaler.step(optimizer)
     scaler.update()
 
-    if step % 100 == 0:
-        losses = estimate_loss()
+if step % 100 == 0:
+    losses = estimate_loss()
 
-        print(
+    print(
             f"Step{step}",
             f"Train Loss: {losses['train']:.4f}"
             f"Val Loss: {losses['val']:.4f}"
         )
 
-        if step % 1000 == 0:
-            torch.save(
-                model.state_dict(),
-                "checkpoint.pt"
-            )
+    if step % 1000 == 0:
+        torch.save(
+            model.state_dict(),
+            "checkpoint.pt"
+        )
 
 print(
     "Total parameters: ",
@@ -439,6 +439,7 @@ while True:
     if prompt == "exit":
         break
 
+    time_start = time.perf_counter()
     context = torch.tensor(
         [encode(prompt)],
         dtype=torch.long,
@@ -450,6 +451,11 @@ while True:
         context,
         max_new_tokens=200       
     )
+
+    time_end = time.perf_counter()
+    elapsed_time = time_end - time_start
+
+    print(f"Total time taken {elapsed_time}")
 
     scheduler.step()
     print(

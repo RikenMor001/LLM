@@ -11,7 +11,6 @@ import math # square root and scaling attention scores; RMS normalization; SWIGL
 import torch # tensors, GPU acceleration, neural network layers, gradients, and optimization
 import time
 
-from torch.fx import Transformer
 import torch.nn as nn # linear layers, embeddings, module classes
 import torch.nn.functional as F # softmax, silu, dropout, cross entropy
 from memory import build_prompt, add_to_memory
@@ -317,9 +316,9 @@ class MiniLLM(nn.Module):
     def forward(self, idx, targets = None):
         x = self.token_embedding(idx)
 
-        for layers in self.layers:
+        for layer in self.layers:
             x = checkpoint(
-                layers,
+                layer,
                 x,
                 self.rope_cos,
                 self.rope_sin,
@@ -381,7 +380,6 @@ def generate(model, idx, max_new_tokens = 100):
 # Creating model, last step
 
 model = MiniLLM().to(device)
-torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
 
 # Optimizer
 optimizer = torch.optim.AdamW(
@@ -409,6 +407,8 @@ for step in range(MAX_STEPS):
     # scale, step and update
     scaler.scale(loss).backward()
     scaler.step(optimizer)
+    torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+    
     scaler.update()
 
 if step % 100 == 0:

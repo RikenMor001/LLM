@@ -212,6 +212,16 @@ class GQA_Attention(nn.Module):
             q = apply_rope(q, rope_cos, rope_sin)
             k = apply_rope(k, rope_cos, rope_sin)
 
+            # before repeating I need to cache it
+            if past_key is not None:
+                k = torch.cat([past_key, k], dim = 2)
+
+            if past_value is not None:
+                v = torch.cat([past_value, v], dim = 2)
+            
+            new_key = k
+            new_value = v
+            
             # repeat kv
             k = repeat_kv(k, self.n_rep)
             v = repeat_kv(v, self.n_rep)
@@ -225,7 +235,7 @@ class GQA_Attention(nn.Module):
             )
             out = out.transpose(1, 2).contiguous().view(b, seq, -1)
             out = self.o_proj(out)
-            return out
+            return out(new_key, new_value)
 
 # Feed Forward class
 

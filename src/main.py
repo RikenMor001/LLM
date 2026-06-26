@@ -170,7 +170,17 @@ class GQA_Attention(nn.Module):
             bias = False
         )
 
-    def forward(self, x, rope_cos, rope_sin):
+# This doesn't recompute the key and value for every token,
+# instead it uses the past key and value to speed up the computation
+    def forward(
+        self,
+        x,
+        rope_cos,
+        rope_sin,
+        past_key = None,
+        past_value = None,
+        use_cache = False
+    ):
             b, seq, _ = x.shape
             q = self.q_proj(x)
             k = self.k_proj(x)

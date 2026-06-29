@@ -296,7 +296,7 @@ class TransformerBlock(nn.Module):
             x = x + self.feed_forward(
                 self.norm2(x)
             )
-            return x, layer_cache
+            return x
 
 # Full model
 class MiniLLM(nn.Module):
@@ -415,6 +415,8 @@ scheduler = CosineAnnealingLR(
     eta_min = 1e-5
 )
 
+metrics = Metrics(window=50)
+
 model.train()
 for step in range(MAX_STEPS):
     xb, yb = get_batch_size("train")
@@ -425,20 +427,23 @@ for step in range(MAX_STEPS):
 
     # scale, step and update
     scaler.scale(loss).backward()
-    scaler.step(optimizer)
     torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
     
     scaler.step(optimizer)
     scaler.update()
     scheduler.step()
 
-if step % 100 == 0:
-    losses = estimate_loss()
+    # add metrics here
+    metrics.update(step, loss.item())
+
+    if step % 100 == 0:
+        metrics.log(step)
+    
+    if step % 1000 == 0:
+        torch.save(model.state_dict(), "checkpoint.pt")
 
     print(
-            f"Step{step}",
-            f"Train Loss: {losses['train']:.4f}"
-            f"Val Loss: {losses['val']:.4f}"
+            f"Step{step} | Loss: {loss.item():.4f}"
         )
 
     if step % 1000 == 0:

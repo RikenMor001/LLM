@@ -20,6 +20,7 @@ from torch.amp import autocast
 from torch.amp.grad_scaler import GradScaler
 from torch.utils.checkpoint import checkpoint
 from torch.optim.lr_scheduler import CosineAnnealingLR
+from eval.metrics import Metrics
 
 scaler = GradScaler()
 
@@ -219,9 +220,6 @@ class GQA_Attention(nn.Module):
             if past_value is not None:
                 v = torch.cat([past_value, v], dim = 2)
             
-            new_key = k
-            new_value = v
-            
             # repeat kv
             k = repeat_kv(k, self.n_rep)
             v = repeat_kv(v, self.n_rep)
@@ -235,7 +233,7 @@ class GQA_Attention(nn.Module):
             )
             out = out.transpose(1, 2).contiguous().view(b, seq, -1)
             out = self.o_proj(out)
-            return out(new_key, new_value)
+            return out, (k, v)
 
 # Feed Forward class
 
@@ -287,17 +285,18 @@ class TransformerBlock(nn.Module):
         
     def forward(self, x, rope_cos, rope_sin):
 
-            x = x + self.attention(
+            attn_out, layer_cache = self.attention(
                 self.norm1(x),
                 rope_cos,   
                 rope_sin,
             )
 
+            x = x + attn_out
+
             x = x + self.feed_forward(
                 self.norm2(x)
             )
-
-            return x
+            return x, layer_cache
 
 # Full model
 class MiniLLM(nn.Module):

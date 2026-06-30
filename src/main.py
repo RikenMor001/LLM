@@ -21,6 +21,11 @@ from torch.amp.grad_scaler import GradScaler
 from torch.utils.checkpoint import checkpoint
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from eval.metrics import Metrics
+from eval.domain_perplexity import (
+    DOMAIN_EVAL_TEXTS,
+    calculate_domain_perplexity,
+    log_domain_perplexity,
+)
 
 scaler = GradScaler()
 
@@ -438,6 +443,15 @@ for step in range(MAX_STEPS):
         val_loss = None
         if step % 500 == 0:
             val_loss = estimate_loss()["val"]
+            domain_ppl = calculate_domain_perplexity(
+                model,
+                DOMAIN_EVAL_TEXTS,
+                encode,
+                device,
+                max_length=MAX_SEQ_LEN,
+            )
+            log_domain_perplexity(domain_ppl)
+            model.train()
         metrics.log(step, lr=scheduler.get_last_lr()[0], val_loss=val_loss)
 
     if step % 1000 == 0:

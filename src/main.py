@@ -373,7 +373,6 @@ def estimate_loss():
         losses[split] = sum(split_losses) / len(split_losses)
     
     model.train()
-    print("Losses printed")
     return losses
 
 # training loop
@@ -433,24 +432,16 @@ for step in range(MAX_STEPS):
     scaler.update()
     scheduler.step()
 
-    # add metrics here
     metrics.update(step, loss.item())
 
     if step % 100 == 0:
-        metrics.log(step)
-    
+        val_loss = None
+        if step % 500 == 0:
+            val_loss = estimate_loss()["val"]
+        metrics.log(step, lr=scheduler.get_last_lr()[0], val_loss=val_loss)
+
     if step % 1000 == 0:
         torch.save(model.state_dict(), "checkpoint.pt")
-
-    print(
-            f"Step{step} | Loss: {loss.item():.4f}"
-        )
-
-    if step % 1000 == 0:
-        torch.save(
-            model.state_dict(),
-            "checkpoint.pt"
-        )
 
 print(
     "Total parameters: ",

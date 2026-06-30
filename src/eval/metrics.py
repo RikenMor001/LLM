@@ -16,11 +16,9 @@ class Metrics:
             self.steps.pop(0)
 
     def calculate_avg_loss(self):
-        calculated_loss = sum(self.losses) / len(self.losses)
         if not self.losses:
             return None
-        else:
-            return calculated_loss
+        return sum(self.losses) / len(self.losses)
 
     # what is ppl?
     # ppl stands for perplexity, is a measure of how well a model 
@@ -32,15 +30,22 @@ class Metrics:
         else: 
             return math.exp(avg_loss)
 
-    def log(self, step: int):
+    def log(self, step: int, lr: float = None, val_loss: float = None):
         avg_loss = self.calculate_avg_loss()
         ppl = self.get_ppl()
 
         if avg_loss is None:
-            return None
+            return
 
-        print(
-            f"Step: {step} "
+        msg = (
+            f"Step {step} | "
             f"Loss: {avg_loss:.4f} | "
             f"PPL: {ppl:.2f}"
         )
+        if lr is not None:
+            msg += f" | LR: {lr:.2e}"
+        print(msg)
+
+        if val_loss is not None:
+            val_ppl = math.exp(val_loss)
+            print(f"         Val loss: {val_loss:.4f} | Val PPL: {val_ppl:.2f}")

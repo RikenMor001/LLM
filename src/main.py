@@ -51,7 +51,7 @@ char_to_index = {c: i for i, c in enumerate(chars)}
 index_to_char = {i: c for i, c in enumerate(chars)}
 
 def encode(string):
-    return [char_to_index[c] for c in string]
+    return [char_to_index[c] for c in string if c in char_to_index]
 
 def decode(tokens):
     return "".join([index_to_char[i] for i in tokens])

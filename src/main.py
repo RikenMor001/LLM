@@ -26,6 +26,7 @@ from eval.domain_perplexity import (
     calculate_domain_perplexity,
     log_domain_perplexity,
 )
+from sampling import sample_next_token
 
 scaler = GradScaler()
 
@@ -382,22 +383,29 @@ def estimate_loss():
 
 # training loop
 # Generation of text
-def generate(model, idx, max_new_tokens = 100):
+def generate(
+    model,
+    idx,
+    max_new_tokens=100,
+    temperature=0.8,
+    top_k=40,
+    top_p=0.9,
+):
     model.eval()
 
     for _ in range(max_new_tokens):
-
         idx_condition = idx[:, -CONTEXT_LENGTH:]
         logits, _ = model(idx_condition)
         logits = logits[:, -1, :]
-        probs = F.softmax(logits, dim=-1)
 
-        next_token = torch.multinomial(
-            probs, 
-            num_samples = 1
+        next_token = sample_next_token(
+            logits,
+            temperature=temperature,
+            top_k=top_k,
+            top_p=top_p,
         )
 
-        idx = torch.cat((idx, next_token), dim = 1)
+        idx = torch.cat((idx, next_token), dim=1)
     return idx
 
 # Creating model, last step

@@ -10,3 +10,12 @@ class SamplingParams:
     top_p: Optional[float] = 0.9
     repetition_penalty: float = 1.15
     repetition_window: int = 64
+
+def apply_repetition_penalty(
+    logits: torch.Tensor,
+    token_ids: Sequence[int],
+    penalty: float,
+    window: int,
+) -> torch.Tensor:
+    if penalty == 1.0 or not token_ids:
+        return logits

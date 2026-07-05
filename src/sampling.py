@@ -34,3 +34,11 @@ def apply_repetition_penalty(
         logits[:, token_id] = adjusted
     
     return logits
+
+def apply_temperature(
+    logits: torch.Tensor,
+    temperature: float,
+) -> torch.Tensor:
+    if temperature <= 0:
+        return logits
+    return logits / temperature

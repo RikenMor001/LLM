@@ -1,5 +1,6 @@
 # to define a common class for all hyperparameters
 from dataclasses import dataclass 
+import token
 from typing import Optional, Sequence
 import torch
 
@@ -22,3 +23,14 @@ def apply_repetition_penalty(
 
     logits = logits.clone()
     recent = list(dict.fromkeys(token_ids[-window:]))
+
+    for token_id in recent:
+        score = logits[:, token_id] # get only the column associated with the token_id
+        adjusted = torch.where(
+            score > 0,
+            score / penalty,
+            score * penalty,
+        )
+        logits[:, token_id] = adjusted
+    
+    return logits

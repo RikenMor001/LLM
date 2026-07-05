@@ -19,3 +19,6 @@ def apply_repetition_penalty(
 ) -> torch.Tensor:
     if penalty == 1.0 or not token_ids:
         return logits
+
+    logits = logits.clone()
+    recent = list(dict.fromkeys(token_ids[-window:]))

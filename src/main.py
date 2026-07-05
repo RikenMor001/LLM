@@ -26,7 +26,7 @@ from eval.domain_perplexity import (
     calculate_domain_perplexity,
     log_domain_perplexity,
 )
-from sampling import sample_next_token
+from sampling import SamplingConfig, sample_next_token
 
 scaler = GradScaler()
 
@@ -387,11 +387,10 @@ def generate(
     model,
     idx,
     max_new_tokens=100,
-    temperature=0.8,
-    top_k=40,
-    top_p=0.9,
+    sampling: SamplingConfig | None = None,
 ):
     model.eval()
+    sampling = sampling or SamplingConfig()
 
     for _ in range(max_new_tokens):
         idx_condition = idx[:, -CONTEXT_LENGTH:]
@@ -400,9 +399,8 @@ def generate(
 
         next_token = sample_next_token(
             logits,
-            temperature=temperature,
-            top_k=top_k,
-            top_p=top_p,
+            sampling,
+            previous_tokens=idx[0].tolist(),
         )
 
         idx = torch.cat((idx, next_token), dim=1)

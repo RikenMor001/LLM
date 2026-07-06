@@ -59,3 +59,19 @@ def apply_top_k(
 # top_p is to make the sampling process more adaptive with respect to 
 # the context of the prompt passed. It does a cumulative sum upto the 
 # max set value of p.
+
+def apply_top_p(
+    logits: torch.Tensor,
+    top_p: float,
+    min_tokens_to_keep: int = 1
+)-> torch.Tensor:
+    sorted_logits, sorted_idx = torch.sort(logits, descending=True)
+    sorted_probs = torch.softmax(sorted_logits, dim=-1)
+    cumulative_probs = torch.cumsum(sorted_probs, dim=-1)
+
+    calculated_top_p = (cumulative_probs - sorted_probs) > top_p
+    if min_tokens_to_keep > 0:
+        calculated_top_p[:, :min_tokens_to_keep] = False
+
+    sorted_logits = sorted_logits.masked_fill(calculated_top_p, float("inf"))
+    return sorted_logits.scatter(1, sorted_idx, sorted_logits)

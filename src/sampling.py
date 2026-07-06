@@ -55,3 +55,7 @@ def apply_top_k(
     values, _ = torch.topk(logits, k, dim=-1)
     cutoff = values[:, [-1]]
     return logits.masked_fill(logits < cutoff, float('-inf'))
+
+# top_p is to make the sampling process more adaptive with respect to 
+# the context of the prompt passed. It does a cumulative sum upto the 
+# max set value of p.

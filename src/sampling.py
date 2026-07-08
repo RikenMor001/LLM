@@ -75,3 +75,18 @@ def apply_top_p(
 
     sorted_logits = sorted_logits.masked_fill(calculated_top_p, float("inf"))
     return sorted_logits.scatter(1, sorted_idx, sorted_logits)
+
+def safe_sample(
+    logits: torch.Tensor,
+) -> torch.Tensor:
+    if torch.all(torch.isinf(logits)):
+        return torch.argmax(
+            logits,
+            dim=-1,
+            keepdim=True
+        )
+    
+    probs = torch.softmax(
+        logits, 
+        dim=-1
+    )

@@ -2,6 +2,7 @@
 from dataclasses import dataclass 
 import token
 from typing import Optional, Sequence
+from sympy import tensor
 import torch
 
 @dataclass
@@ -89,4 +90,11 @@ def safe_sample(
     probs = torch.softmax(
         logits, 
         dim=-1
+    )
+    if torch.any(torch.isnan(probs)) or torch.all(probs == 0):
+        return torch.argmax(logits, dim=-1, keepdim=True)
+
+    return torch.multinomial(
+        probs,
+        num_samples=1,
     )

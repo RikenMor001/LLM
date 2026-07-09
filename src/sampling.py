@@ -7,7 +7,7 @@ import torch
 
 @dataclass
 class SamplingParams:
-    temperatture: float = 0.8
+    temperature: float = 0.8
     top_k: Optional[int] = 40
     top_p: Optional[float] = 0.9
     repetition_penalty: float = 1.15
@@ -98,3 +98,19 @@ def safe_sample(
         probs,
         num_samples=1,
     )
+
+# defining next sample token, time to add all these functions
+# together and predict the next token with high probability
+
+def next_token(
+    logits: torch.Tensor,
+    top_k: Optional[int]=None,
+    top_p: Optional[float]=None,
+    temperature: Optional[float]=None,
+    repetition_penalty: Optional[float]=None,
+    repetition_window: Optional[int]=None,
+    previous_tokens: Sequence[int] = None,
+    config: Optional[SamplingParams]=None,
+) -> torch.Tensor:
+    """sample one token from logits using temperature, top_k, top_p and repetition penalty"""
+    cfg = config or SamplingParams()

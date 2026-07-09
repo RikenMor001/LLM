@@ -124,3 +124,11 @@ def next_token(
     repetition_window = (
         cfg.repetition_window if repetition_window is None else repetition_window
     )
+
+    if previous_tokens is not None:
+        logits = apply_repetition_penalty(
+            logits,
+            previous_tokens,
+            repetition_penalty,
+            repetition_window,
+        )

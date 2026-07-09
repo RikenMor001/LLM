@@ -114,3 +114,13 @@ def next_token(
 ) -> torch.Tensor:
     """sample one token from logits using temperature, top_k, top_p and repetition penalty"""
     cfg = config or SamplingParams()
+
+    temperature = cfg.temperature if temperature is None else temperature
+    top_k = cfg.top_k if top_k is None else top_k
+    top_p = cfg.top_p if top_p is None else top_p
+    repetition_penalty = (
+        cfg.repetition_penalty if repetition_penalty is None else repetition_penalty
+    )
+    repetition_window = (
+        cfg.repetition_window if repetition_window is None else repetition_window
+    )

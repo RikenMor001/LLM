@@ -26,7 +26,7 @@ from eval.domain_perplexity import (
     calculate_domain_perplexity,
     log_domain_perplexity,
 )
-from sampling import SamplingConfig, sample_next_token
+from sampling import SamplingParams, sample_next_token
 
 scaler = GradScaler()
 
@@ -387,10 +387,10 @@ def generate(
     model,
     idx,
     max_new_tokens=100,
-    sampling: SamplingConfig | None = None,
+    sampling: SamplingParams | None = None,
 ):
     model.eval()
-    sampling = sampling or SamplingConfig()
+    sampling = sampling or SamplingParams()
 
     for _ in range(max_new_tokens):
         idx_condition = idx[:, -CONTEXT_LENGTH:]

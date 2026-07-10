@@ -132,3 +132,18 @@ def next_token(
             repetition_penalty,
             repetition_window,
         )
+    
+    if temperature <= 0:
+        return torch.argmax(logits, dim=-1, keepdim=True)
+    
+    logits = apply_temperature(logits, temperature)
+
+    if top_k is not None:
+        logits = apply_top_k(logits, top_k)
+    
+    if top_p is not None:
+        logits = apply_top_p(logits, top_p)
+
+    # do a temperature check, apply top_k and top_p to the logits and then sample the next token
+    # and return the next token
+    return safe_sample(logits)

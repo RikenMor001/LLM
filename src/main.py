@@ -8,6 +8,8 @@
 # Weight tying
 
 import math # square root and scaling attention scores; RMS normalization; SWIGLU
+import os
+import random
 import torch # tensors, GPU acceleration, neural network layers, gradients, and optimization
 import time
 
@@ -423,8 +425,8 @@ def generate(
 model = MiniLLM().to(device)
 
 start_step = 0
-if os.path.exists("checkpoint.pt"):
-    model.load_state_dict(torch.load(CHECKPOINT_PATH, map_location=device))
+if os.path.exists(CHECKPOINT_PATH): # CHECKPOINT_PATH is defined in the config.py file
+    model.load_state_dict(torch.load(CHECKPOINT_PATH, map_location=device)) # map_location is used to map the model to the device   
     print(f"Loaded model from checkpoint is at step: {start_step}")
 
 # Optimizer

@@ -14,7 +14,10 @@ import time
 import torch.nn as nn # linear layers, embeddings, module classes
 import torch.nn.functional as F # softmax, silu, dropout, cross entropy
 from memory import build_prompt, add_to_memory
-from config import BATCH_SIZE, CONTEXT_LENGTH, D_MODEL, N_LAYERS, N_HEADS, N_KV_HEADS, FFN_HIDDEN, DROPOUT, MAX_SEQ_LEN, MAX_STEPS, HEAD_DIM
+from config import ( 
+    BATCH_SIZE, CONTEXT_LENGTH, D_MODEL, N_LAYERS, N_HEADS, N_KV_HEADS, 
+    FFN_HIDDEN, DROPOUT, MAX_SEQ_LEN, MAX_STEPS, HEAD_DIM
+)
 from models import rmsnorm
 from torch.amp import autocast
 from torch.amp.grad_scaler import GradScaler
@@ -26,7 +29,7 @@ from eval.domain_perplexity import (
     calculate_domain_perplexity,
     log_domain_perplexity,
 )
-from sampling import SamplingParams, sample_next_token
+from sampling import SamplingParams, next_token as sample_next_token
 
 scaler = GradScaler()
 
@@ -36,6 +39,14 @@ if torch.backends.mps.is_available():
 else: 
     device = torch.device("cpu") 
     print(f"Using CPU device {device}")
+
+def set_seed(seed: int):
+    random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)
+    if torch.backends.mps.is_available():
+        torch.backends.mps.manual_seed(seed)
 
 # enables faster matrix multiplication for higher precision
 # Given that everything is a matrix multiplication here

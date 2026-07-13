@@ -429,16 +429,16 @@ if os.path.exists("checkpoint.pt"):
 # Optimizer
 optimizer = torch.optim.AdamW(
     model.parameters(),
-    lr = 3e-4,
-    betas = (0.9, 0.95),
-    weight_decay = 0.1 ,
-    eps = 1e-8
+    lr = LR,
+    betas = BETAS,
+    weight_decay=WEIGHT_DECAY,
+    eps=EPS
 )
 
 scheduler = CosineAnnealingLR(
     optimizer,
     T_max = MAX_STEPS,
-    eta_min = 1e-5
+    eta_min=ETA_MIN
 )
 
 metrics = Metrics(window=50)

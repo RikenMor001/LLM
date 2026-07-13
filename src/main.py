@@ -16,7 +16,8 @@ import torch.nn.functional as F # softmax, silu, dropout, cross entropy
 from memory import build_prompt, add_to_memory
 from config import ( 
     BATCH_SIZE, CONTEXT_LENGTH, D_MODEL, N_LAYERS, N_HEADS, N_KV_HEADS, 
-    FFN_HIDDEN, DROPOUT, MAX_SEQ_LEN, MAX_STEPS, HEAD_DIM
+    FFN_HIDDEN, DROPOUT, MAX_SEQ_LEN, MAX_STEPS, HEAD_DIM,
+    LABEL_SMOOTHING, LR, BETAS, WEIGHT_DECAY, EPS, ETA_MIN, CHECKPOINT_PATH
 )
 from models import rmsnorm
 from torch.amp import autocast
@@ -369,7 +370,7 @@ class MiniLLM(nn.Module):
                 loss = F.cross_entropy(
                     logits.view(-1, logits.size(-1)),
                     targets.view(-1),
-                    label_smoothing=0.1  # Adding label_smoothing so that it gives mixtuer of the ground truth and an uniform distribution.
+                    label_smoothing=LABEL_SMOOTHING  # Adding label_smoothing so that it gives mixtuer of the ground truth and an uniform distribution.
                 )
         return logits, loss
     

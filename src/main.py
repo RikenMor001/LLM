@@ -421,6 +421,11 @@ def generate(
 
 model = MiniLLM().to(device)
 
+start_step = 0
+if os.path.exists("checkpoint.pt"):
+    model.load_state_dict(torch.load(CHECKPOINT_PATH, map_location=device))
+    print(f"Loaded model from checkpoint is at step: {start_step}")
+
 # Optimizer
 optimizer = torch.optim.AdamW(
     model.parameters(),

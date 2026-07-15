@@ -8,8 +8,6 @@ import math
 import os
 import argparse
 
-from main import val_data
- 
 def build_tokenizer(data_path: str = "input.txt"):
     with open(data_path, "r", encoding="utf-8") as f: # opens the file in read mode with utf-8 encoding
         text = f.read() # reads the entire file into a string
@@ -53,3 +51,25 @@ def get_device():
     return torch.device("cpu")
 
 # EVALS
+
+EVAL_PROMPTS = [
+    "Once upon a time",
+    "Revenue increased",
+    "The afternoon sun",
+    "Risk factors include"
+]
+
+@torch.no_grad()
+def estimate_loss(model, get_batch, n_batches: int = 40):
+    model.eval()
+    losses = {}
+
+    for split in ("train", "val"):
+        split_losses = []
+        for _ in range(n_batches):
+            x, y = get_batch(split)
+            _, loss = model(x, y)
+            split_losses.append(loss.item())
+        losses[split] = sum(split_losses) / len(split_losses)
+    
+    return losses

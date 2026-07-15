@@ -44,3 +44,12 @@ def build_tokenizer(data_path: str = "input.txt"):
         "val_data": val_data,
         "vocab_size": len(chars),
     }
+
+def get_device():
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    if torch.backends.mps.is_available():
+        return torch.device("mps")
+    return torch.device("cpu")
+
+# EVALS

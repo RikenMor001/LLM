@@ -8,6 +8,8 @@ import math
 import os
 import argparse
 
+from config import CONTEXT_LENGTH
+
 def build_tokenizer(data_path: str = "input.txt"):
     with open(data_path, "r", encoding="utf-8") as f: # opens the file in read mode with utf-8 encoding
         text = f.read() # reads the entire file into a string
@@ -71,5 +73,17 @@ def estimate_loss(model, get_batch, n_batches: int = 40):
             _, loss = model(x, y)
             split_losses.append(loss.item())
         losses[split] = sum(split_losses) / len(split_losses)
-    
+
     return losses
+
+@torch.no_grad()
+def evaluate_perplexity(
+    model,
+    data: torch.Tensor,
+    device: torch.device,
+    context_length: int = CONTEXT_LENGTH,
+    stride: int | None = None
+):
+    """
+    More stable PPL: Slide windows over the full split
+    """

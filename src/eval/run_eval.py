@@ -87,3 +87,32 @@ def evaluate_perplexity(
     """
     More stable PPL: Slide windows over the full split
     """
+    model.eval()
+    if stride is None:
+        stride = context_length
+    
+    total_loss: float = 0.0
+    n_tokens: int = 0
+
+    # if the length of the data is less than the context length, meaning the data is too short to evaluate perplexity
+    if len(data) <= context_length:
+        return None
+    
+    for start in range(0, len(data) - context_length, stride):
+        x = data[start:start + context_length].unsqueeze(0).to(device)
+        y = data[start + 1 : start + context_length + 1].to(device)
+        _, loss = model(x, y)
+        n = context_length
+        # total loss is the sum of the loss of each token
+        total_loss += loss.item() * n
+        n_tokens += n
+    
+    if n_tokens == 0:
+        return None
+
+    return_loss = total_loss / n_tokens
+    return {
+        "loss": return_loss,
+        "n_tokens": n_tokens,
+        "ppl": math.exp(return_loss)
+    }

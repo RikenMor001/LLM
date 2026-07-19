@@ -9,6 +9,7 @@ import os
 import argparse
 
 from config import CONTEXT_LENGTH
+from sampling import SamplingParams
 
 def build_tokenizer(data_path: str = "input.txt"):
     with open(data_path, "r", encoding="utf-8") as f: # opens the file in read mode with utf-8 encoding
@@ -116,3 +117,12 @@ def evaluate_perplexity(
         "n_tokens": n_tokens,
         "ppl": math.exp(return_loss)
     }
+
+@torch.no_grad()
+def generate(
+    model,
+    idx: torch.Tensor,
+    max_new_tokens: int = 100,
+    sample: SamplingParams | None = None
+):
+    model.eval()

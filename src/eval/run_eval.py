@@ -9,6 +9,7 @@ import os
 import argparse
 
 from config import CONTEXT_LENGTH
+from main import sample_next_token
 from sampling import SamplingParams
 
 def build_tokenizer(data_path: str = "input.txt"):
@@ -123,6 +124,21 @@ def generate(
     model,
     idx: torch.Tensor,
     max_new_tokens: int = 100,
-    sample: SamplingParams | None = None
+    sampling: SamplingParams | None = None
 ):
     model.eval()
+    sampling = sampling or SamplingParams()
+
+    for _ in range(max_new_tokens):
+        idx_cond = idx[:, -CONTEXT_LENGTH:]
+        logits, _ = model(idx_cond)
+        logits = logits[:, -1, :]
+
+        new_tokens = sample_next_token(
+            logits,
+            config = sampling,
+            previous_tokens = idx[0].tolist()
+        )
+        idx = torch.cat((idx, new_tokens), dim = 1)
+    
+    return idx

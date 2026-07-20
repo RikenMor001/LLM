@@ -142,3 +142,10 @@ def generate(
         idx = torch.cat((idx, new_tokens), dim = 1)
     
     return idx
+
+# now evaluate after generating tokens
+
+def evaluate_generated_text(
+    model,
+):
+    print("===== Evaluating Generated Text =====\n")

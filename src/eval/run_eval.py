@@ -11,6 +11,7 @@ import argparse
 from config import CONTEXT_LENGTH
 from main import sample_next_token
 from sampling import SamplingParams
+import sampling
 
 def build_tokenizer(data_path: str = "input.txt"):
     with open(data_path, "r", encoding="utf-8") as f: # opens the file in read mode with utf-8 encoding
@@ -161,4 +162,10 @@ def evaluate_generated_text(
             print(f"Warning: Prompt {prompt} if invalid")
             continue
 
-        
+        context = torch.tensor([tokens], dtype=torch.long, device = device)
+        out = generate(model, context, max_new_tokens=max_new_tokens, sampling=SamplingParams)
+        text = decode(out[0].tolist())
+        continuation = text[len(prompt) :] if text.startswith(prompt) else text
+
+        print(f"Prompt: {prompt!r}")
+        print(f"Continuation: {continuation!r}")

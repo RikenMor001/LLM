@@ -147,5 +147,18 @@ def generate(
 
 def evaluate_generated_text(
     model,
+    encode,
+    decode,
+    device,
+    prompts: EVAL_PROMPTS,
+    max_new_tokens: int = 150,
 ):
     print("===== Evaluating Generated Text =====\n")
+
+    for prompt in prompts:
+        tokens = encode(prompt)
+        if not tokens:
+            print(f"Warning: Prompt {prompt} if invalid")
+            continue
+
+        

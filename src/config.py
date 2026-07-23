@@ -18,3 +18,4 @@ WEIGHT_DECAY = 0.1
 EPS = 1e-8
 ETA_MIN = 1e-5
 CHECKPOINT_PATH = "checkpoint.pt"
+DATA_PATH = "input.txt"

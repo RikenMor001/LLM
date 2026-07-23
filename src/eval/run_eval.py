@@ -8,7 +8,7 @@ import math
 import os
 import argparse
 
-from config import CONTEXT_LENGTH
+from config import CHECKPOINT_PATH, CONTEXT_LENGTH, DATA_PATH
 from main import sample_next_token
 from sampling import SamplingParams
 import sampling
@@ -169,3 +169,9 @@ def evaluate_generated_text(
 
         print(f"Prompt: {prompt!r}")
         print(f"Continuation: {continuation!r}")
+
+# Main function
+def main():
+    parser = argparse.ArgumentParser(description="Evaluate the model")
+    parser.add_argument("--checkpoint_path", default = CHECKPOINT_PATH)
+    parser.add_argument("data_path", default = DATA_PATH)

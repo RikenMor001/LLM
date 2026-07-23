@@ -13,7 +13,7 @@ from main import sample_next_token
 from sampling import SamplingParams
 import sampling
 
-def build_tokenizer(data_path: str = "input.txt"):
+def build_tokenizer(data_path: str = DATA_PATH):
     with open(data_path, "r", encoding="utf-8") as f: # opens the file in read mode with utf-8 encoding
         text = f.read() # reads the entire file into a string
     
@@ -174,4 +174,22 @@ def evaluate_generated_text(
 def main():
     parser = argparse.ArgumentParser(description="Evaluate the model")
     parser.add_argument("--checkpoint_path", default = CHECKPOINT_PATH)
-    parser.add_argument("data_path", default = DATA_PATH)
+    parser.add_argument("--data_path", default = DATA_PATH)
+    parser.add_argument("--max_new_tokens", type = int | str | None, default = 150)
+    parser.add_argument("--n_batches", type = int | str | None, default = 40)
+    parser.add_argument("--skip_generation", action = "store_true")
+
+    args = parser.parse_args()
+
+    device = get_device()
+    print(f"Using device: {device}")
+
+    if not os.path.exists(args.checkpoint):
+        raise FileNotFoundError(
+            f"Checkpoint file not found {args.checkpoint}\n"
+            "Train first or pass --checkpoint src/checkpoint.pt"
+        )
+    
+    token = build_tokenizer(args.data)
+    encode, decode = token["encode"], token["decode"]
+    train_data, val_data = token["train_data"], token["val_data"]

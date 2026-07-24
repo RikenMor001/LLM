@@ -193,3 +193,8 @@ def main():
     token = build_tokenizer(args.data)
     encode, decode = token["encode"], token["decode"]
     train_data, val_data = token["train_data"], token["val_data"]
+
+    from main import MiniLLM
+
+    model = MiniLLM.to(device)
+    state = torch.load(args.checkpoint, map_location=device)

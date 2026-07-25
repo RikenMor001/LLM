@@ -198,3 +198,7 @@ def main():
 
     model = MiniLLM.to(device)
     state = torch.load(args.checkpoint, map_location=device)
+    model.load_state_dict(state)
+    model.eval()
+    print(f"Loaded {args.checkpoint_path}")
+    print(f"Params: {sum(p.numel() for p in model.parameters())}")

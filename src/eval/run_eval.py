@@ -9,7 +9,7 @@ import os
 import argparse
 
 from config import CHECKPOINT_PATH, CONTEXT_LENGTH, DATA_PATH
-from main import sample_next_token
+from main import sample_next_token, train_data, val_data
 from sampling import SamplingParams
 import sampling
 
@@ -194,11 +194,19 @@ def main():
     encode, decode = token["encode"], token["decode"]
     train_data, val_data = token["train_data"], token["val_data"]
 
-    from main import MiniLLM
+from main import MiniLLM
 
-    model = MiniLLM.to(device)
-    state = torch.load(args.checkpoint, map_location=device)
-    model.load_state_dict(state)
-    model.eval()
-    print(f"Loaded {args.checkpoint_path}")
-    print(f"Params: {sum(p.numel() for p in model.parameters())}")
+model = MiniLLM.to(device)
+state = torch.load(args.checkpoint, map_location=device)
+model.load_state_dict(state)
+model.eval()
+print(f"Loaded {args.checkpoint_path}")
+print(f"Params: {sum(p.numel() for p in model.parameters())}")
+
+def get_batch(split: str):
+    data = train_data if split == "train" else val_data
+    ix = torch.randint(len(data) - CONTEXT_LENGTH, (32, ))
+    x = torch.stack([data[i: i + CONTEXT_LENGTH] for i in ix])
+    y = torch.stack([data[i + 1: i + CONTEXT_LENGTH + 1] for i in ix])
+
+    return x.to(device), y.to(device)

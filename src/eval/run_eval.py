@@ -1,3 +1,4 @@
+from webbrowser import get
 import torch
 
 # tells python to save text as strings first instead of 
@@ -210,3 +211,9 @@ def get_batch(split: str):
     y = torch.stack([data[i + 1: i + CONTEXT_LENGTH + 1] for i in ix])
 
     return x.to(device), y.to(device)
+
+print(" ===== Estimating Loss =====\n")
+
+losses = estimate_loss(model, get_batch, n_batches=args.n_batches)
+print(f"Train loss: {losses['train']:.4f} | Train PPL: {math.exp(losses['train']):.2f}")
+print(f"Val loss: {losses['val']:.4f} | Val PPl {math.exp(losses['val']):.2f}")
